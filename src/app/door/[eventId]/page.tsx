@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect, useState, useRef, use, Suspense } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useParams } from 'next/navigation';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { QrCode, Search, CheckCircle2, AlertTriangle, Lock, Users, Loader2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase';
-function DoorContent({ params }: { params: Promise<{ eventId: string }> }) {
 
-  const { eventId } = use(params);
+function DoorContent() {
+  const routeParams = useParams();
+  const eventId = String(routeParams?.eventId || '');
   const supabase = createClient();
 
   const [event, setEvent] = useState<any>(null);
@@ -240,16 +242,7 @@ async function handleTokenCheckIn(token: string) {
     </main>
   );
 }
-export default function GatekeeperDoorPage({ params }: { params: Promise<{ eventId: string }> }) {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-[#1C1917] text-white flex items-center justify-center gap-2 text-sm">
-          <Loader2 className="w-4 h-4 animate-spin text-[#B48A5A]" /> Loading Gatekeeper...
-        </div>
-      }
-    >
-      <DoorContent params={params} />
-    </Suspense>
-  );
+export default function GatekeeperDoorPage() {
+  return <DoorContent />;
 }
+

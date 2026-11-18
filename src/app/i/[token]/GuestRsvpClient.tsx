@@ -15,11 +15,12 @@ const COPY = {
     acceptBtn: 'Accept Invite',
     declineBtn: 'Decline',
     saving: 'Saving...',
+    thanksTitle: 'Thank you!',
+    acceptedSub: 'Your attendance has been confirmed. Here is your personal entry pass:',
+    declinedSub: 'Thank you for letting us know. Your response has been recorded.',
     passTitle: 'Personal Entry Pass',
     admits: (n: number) => `Admits ${n} (${n === 1 ? 'You' : `You + ${n - 1}`})`,
     scanHint: 'Present this QR code at the entrance',
-    declinedMsg: 'Thank you for letting us know. We have notified the host.',
-    changeResponse: 'Change Response',
     switchLang: 'عربي',
   },
   ar: {
@@ -31,11 +32,12 @@ const COPY = {
     acceptBtn: 'قبول الدعوة',
     declineBtn: 'اعتذار',
     saving: 'جاري الحفظ...',
+    thanksTitle: 'شكراً لك!',
+    acceptedSub: 'تم تأكيد حضوركم بنجاح. تفضل بطاقة الدخول الخاصة بك:',
+    declinedSub: 'شكراً لإبلاغنا، تم تسجيل ردّكم بنجاح.',
     passTitle: 'بطاقة الدخول الشخصية',
     admits: (n: number) => `الدخول لعدد ${n} (${n === 1 ? 'شخص واحد' : `أنت + ${n - 1}`})`,
     scanHint: 'يرجى إبراز رمز الدخول عند البوابة',
-    declinedMsg: 'شكراً لإبلاغنا، تم إشعار المضيف بردّكم.',
-    changeResponse: 'تعديل الرد',
     switchLang: 'English',
   },
 };
@@ -50,8 +52,10 @@ export default function GuestRsvpClient({ initialGuest, event }: { initialGuest:
   const t = COPY[lang];
   const isAr = lang === 'ar';
   const totalHeadcount = 1 + (initialGuest.extra_guests || 0);
+  const isLocked = status === 'accepted' || status === 'declined';
 
   async function handleResponse(newStatus: 'accepted' | 'declined') {
+    if (loading || isLocked) return;
     setLoading(true);
     const { error } = await supabase
       .from('guests')
@@ -62,16 +66,16 @@ export default function GuestRsvpClient({ initialGuest, event }: { initialGuest:
     if (!error) {
       setStatus(newStatus);
     } else {
-      alert('Could not update RSVP. Please try again.');
+      alert(isAr ? 'تعذر حفظ الرد، يرجى المحاولة مرة أخرى.' : 'Could not update RSVP. Please try again.');
     }
   }
+
   return (
     <main
       dir={isAr ? 'rtl' : 'ltr'}
       className="min-h-screen bg-[#FAF8F5] text-[#1C1917] flex flex-col items-center py-8 px-4"
     >
       <div className="w-full max-w-md space-y-6">
-        {/* Language Toggle Pill */}
         <div className="flex justify-end">
           <button
             type="button"
@@ -83,7 +87,6 @@ export default function GuestRsvpClient({ initialGuest, event }: { initialGuest:
           </button>
         </div>
 
-        {/* Invitation Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-stone-200/80 overflow-hidden">
           {event.invitation_image_url && (
             <img
@@ -103,7 +106,6 @@ export default function GuestRsvpClient({ initialGuest, event }: { initialGuest:
               {event.title}
             </h1>
 
-            {/* Personalized Guest Greeting & Fixed Allowance Badge */}
             <div className="bg-[#FAF8F5] rounded-xl py-3.5 px-4 border border-stone-200/60">
               <p className="text-xs text-stone-500">{t.personalInviteFor}</p>
               <p className="text-lg font-semibold mt-0.5">{initialGuest.full_name}</p>
@@ -120,7 +122,6 @@ export default function GuestRsvpClient({ initialGuest, event }: { initialGuest:
               </p>
             )}
 
-            {/* Date & Location */}
             <div className="pt-2 space-y-2.5 text-sm text-stone-700 border-t border-stone-100">
               <div className="flex items-center justify-center gap-2">
                 <Calendar className="w-4 h-4 text-[#B48A5A] shrink-0" />
@@ -154,8 +155,8 @@ export default function GuestRsvpClient({ initialGuest, event }: { initialGuest:
           </div>
         </div>
 
-        {/* RSVP Action Card */}
-        {status === 'pending' || status === 'draft' ? (
+        {/* One-Time Locked RSVP Card */}
+        {!isLocked ? (
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-stone-200/80 space-y-4">
             <textarea
               rows={2}
@@ -167,6 +168,7 @@ export default function GuestRsvpClient({ initialGuest, event }: { initialGuest:
 
             <div className="grid grid-cols-2 gap-3">
               <button
+                type="button"
                 disabled={loading}
                 onClick={() => handleResponse('accepted')}
                 className="flex items-center justify-center gap-2 rounded-xl bg-[#2E5A44] text-white font-semibold py-3.5 text-sm shadow-sm active:scale-[0.99] transition disabled:opacity-50"
@@ -176,63 +178,42 @@ export default function GuestRsvpClient({ initialGuest, event }: { initialGuest:
               </button>
 
               <button
+                type="button"
                 disabled={loading}
                 onClick={() => handleResponse('declined')}
                 className="flex items-center justify-center gap-2 rounded-xl bg-stone-100 text-stone-700 font-semibold py-3.5 text-sm hover:bg-stone-200/70 active:scale-[0.99] transition disabled:opacity-50"
               >
                 <X className="w-4 h-4" />
-                {t.declineBtn}
+                {loading ? t.saving : t.declineBtn}
               </button>
             </div>
           </div>
         ) : status === 'accepted' ? (
-          /* Personal QR Entry Pass */
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#2E5A44]/30 text-center space-y-4">
+            <div className="space-y-1">
+              <h2 className="text-lg font-bold text-[#2E5A44]">{t.thanksTitle}</h2>
+              <p className="text-xs text-stone-600">{t.acceptedSub}</p>
+            </div>
+
             <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2E5A44] bg-[#2E5A44]/10 px-3 py-1 rounded-full">
               <Check className="w-3.5 h-3.5" /> {t.passTitle}
             </div>
 
             <div className="flex justify-center py-2">
               <div className="p-3 bg-white rounded-2xl border border-stone-200 shadow-xs">
-                <QRCodeSVG
-                  value={initialGuest.invite_token}
-                  size={170}
-                  fgColor="#1C1917"
-                  bgColor="#FFFFFF"
-                  level="M"
-                />
+                <QRCodeSVG value={initialGuest.invite_token} size={170} />
               </div>
             </div>
 
             <div className="space-y-1">
-              <p className="font-bold text-base">{initialGuest.full_name}</p>
-              <p className="text-xs font-medium text-[#2E5A44]">
-                {t.admits(totalHeadcount)}
-              </p>
-              <p className="text-[11px] text-stone-400 pt-1">
-                {t.scanHint}
-              </p>
+              <p className="text-sm font-semibold text-stone-800">{t.admits(totalHeadcount)}</p>
+              <p className="text-xs text-stone-500">{t.scanHint}</p>
             </div>
-
-            <button
-              onClick={() => setStatus('pending')}
-              className="text-xs text-stone-400 underline pt-2"
-            >
-              {t.changeResponse}
-            </button>
           </div>
         ) : (
-          /* Declined State */
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-stone-200/80 text-center space-y-3">
-            <p className="text-sm font-medium text-stone-700">
-              {t.declinedMsg}
-            </p>
-            <button
-              onClick={() => setStatus('pending')}
-              className="text-xs font-semibold text-[#2E5A44] underline"
-            >
-              {t.changeResponse}
-            </button>
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-stone-200 text-center space-y-2">
+            <h2 className="text-lg font-bold text-stone-800">{t.thanksTitle}</h2>
+            <p className="text-sm text-stone-600">{t.declinedSub}</p>
           </div>
         )}
       </div>
