@@ -31,10 +31,15 @@ useEffect(() => {
     loadEventAndGuests();
   }, [eventId]);
 
-  async function loadEventAndGuests() {
+    async function loadEventAndGuests() {
     const [{ data: ev }, { data: gst }] = await Promise.all([
       supabase.from('events').select('*').eq('id', eventId).single(),
-      supabase.from('guests').select('*').eq('event_id', eventId).neq('status', 'replaced'),
+      supabase
+        .from('guests')
+        .select('*')
+        .eq('event_id', eventId)
+        .neq('status', 'replaced')
+        .neq('status', 'declined'),
     ]);
     setEvent(ev);
     setGuests(gst || []);

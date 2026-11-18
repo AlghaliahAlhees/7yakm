@@ -2,16 +2,35 @@
 
 import { useEffect, useState } from "react";
 import {
-  Plus, Users, Search, ExternalLink, RefreshCw,
-  UserPlus, CheckCircle2, Clock, LogOut, QrCode,
-  ArrowUp, ArrowDown, Loader2, KeyRound, GripVertical, Globe, Copy,
-  Send, Bell
-} from 'lucide-react';
+  Plus,
+  Users,
+  Search,
+  ExternalLink,
+  RefreshCw,
+  UserPlus,
+  CheckCircle2,
+  Clock,
+  LogOut,
+  QrCode,
+  ArrowUp,
+  ArrowDown,
+  Loader2,
+  KeyRound,
+  GripVertical,
+  Globe,
+  Copy,
+  Send,
+  Bell,
+} from "lucide-react";
 
 import { createClient } from "@/lib/supabase";
 import AuthForm from "../components/AuthForm";
-import { NewEventModal, ImportGuestsModal, ReplaceGuestModal, CopyFromEventModal } from '../components/HostModals';
-
+import {
+  NewEventModal,
+  ImportGuestsModal,
+  ReplaceGuestModal,
+  CopyFromEventModal,
+} from "../components/HostModals";
 
 export default function HostDashboardPage() {
   const supabase = createClient();
@@ -32,8 +51,8 @@ export default function HostDashboardPage() {
   const [draggedColIndex, setDraggedColIndex] = useState<number | null>(null);
   const [lang, setLang] = useState<"en" | "ar">("en");
   const isAr = lang === "ar";
-const [events, setEvents] = useState<any[]>([]);
-const [showCopyModal, setShowCopyModal] = useState(false);
+  const [events, setEvents] = useState<any[]>([]);
+  const [showCopyModal, setShowCopyModal] = useState(false);
 
   function notify(msg: string) {
     setToastMsg(msg);
@@ -49,37 +68,43 @@ const [showCopyModal, setShowCopyModal] = useState(false);
     });
   }, []);
 
-async function loadEvents(userId: string) {
-  const { data } = await supabase
-    .from('events')
-    .select('*')
-    .eq('host_id', userId)
-    .order('created_at', { ascending: false });
+  async function loadEvents(userId: string) {
+    const { data } = await supabase
+      .from("events")
+      .select("*")
+      .eq("host_id", userId)
+      .order("created_at", { ascending: false });
 
-  const list = data || [];
-  setEvents(list);
-  if (list.length > 0) {
-    selectEvent(list[0]);
-  } else {
-    setSelectedEvent(null);
-    setCollections([]);
-    setGuests([]);
+    const list = data || [];
+    setEvents(list);
+    if (list.length > 0) {
+      selectEvent(list[0]);
+    } else {
+      setSelectedEvent(null);
+      setCollections([]);
+      setGuests([]);
+    }
   }
-}
-
 
   async function selectEvent(evInput: any) {
-  const ev = Array.isArray(evInput) ? evInput[0] : evInput;
-  if (!ev?.id) return;
-  setSelectedEvent(ev);
-  const [{ data: cols }, { data: gst }] = await Promise.all([
-    supabase.from('collections').select('*').eq('event_id', ev.id).order('sort_order'),
-    supabase.from('guests').select('*').eq('event_id', ev.id).order('created_at', { ascending: false }),
-  ]);
-  setCollections(cols || []);
-  setGuests(gst || []);
-}
-
+    const ev = Array.isArray(evInput) ? evInput[0] : evInput;
+    if (!ev?.id) return;
+    setSelectedEvent(ev);
+    const [{ data: cols }, { data: gst }] = await Promise.all([
+      supabase
+        .from("collections")
+        .select("*")
+        .eq("event_id", ev.id)
+        .order("sort_order"),
+      supabase
+        .from("guests")
+        .select("*")
+        .eq("event_id", ev.id)
+        .order("created_at", { ascending: false }),
+    ]);
+    setCollections(cols || []);
+    setGuests(gst || []);
+  }
 
   async function handleAddCollection(e: React.FormEvent) {
     e.preventDefault();
@@ -212,15 +237,17 @@ async function loadEvents(userId: string) {
     setGuests((prev) => prev.filter((g) => g.id !== guestId));
   }
 
-
-    async function dispatchPlatformWhatsApp(targetGuests: any[], isReminder: boolean) {
+  async function dispatchPlatformWhatsApp(
+    targetGuests: any[],
+    isReminder: boolean,
+  ) {
     const ev = Array.isArray(selectedEvent) ? selectedEvent : selectedEvent;
     if (!ev || targetGuests.length === 0) return false;
 
-    setBusyAction('sending');
-    const res = await fetch('/api/send-whatsapp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    setBusyAction("sending");
+    const res = await fetch("/api/send-whatsapp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         guests: targetGuests,
         event: ev,
@@ -240,20 +267,20 @@ async function loadEvents(userId: string) {
       notify(
         isAr
           ? `تمت جدولة ${result.sent} رسالة عبر رقم المنصة (وضع التجربة)`
-          : `Queued ${result.sent} message(s) via platform number (Test Mode)`
+          : `Queued ${result.sent} message(s) via platform number (Test Mode)`,
       );
     } else {
       notify(
         isAr
           ? `تم إرسال ${result.sent} رسالة عبر واتساب المنصة`
-          : `Sent ${result.sent} message(s) via platform WhatsApp`
+          : `Sent ${result.sent} message(s) via platform WhatsApp`,
       );
     }
     return true;
   }
 
   async function handleSendAllDraftInvites() {
-    const draftGuests = activeGuests.filter((g) => g.status === 'draft');
+    const draftGuests = activeGuests.filter((g) => g.status === "draft");
     if (draftGuests.length === 0) return;
 
     const confirmText = isAr
@@ -267,19 +294,21 @@ async function loadEvents(userId: string) {
 
     const draftIds = draftGuests.map((g) => g.id);
     const { error } = await supabase
-      .from('guests')
-      .update({ status: 'pending' })
-      .in('id', draftIds);
+      .from("guests")
+      .update({ status: "pending" })
+      .in("id", draftIds);
 
     if (!error) {
       setGuests((prev) =>
-        prev.map((g) => (draftIds.includes(g.id) ? { ...g, status: 'pending' } : g))
+        prev.map((g) =>
+          draftIds.includes(g.id) ? { ...g, status: "pending" } : g,
+        ),
       );
     }
   }
 
-    async function handleRemindAllPending() {
-    const pendingGuests = guests.filter((g) => g.status === 'pending');
+  async function handleRemindAllPending() {
+    const pendingGuests = guests.filter((g) => g.status === "pending");
     if (pendingGuests.length === 0) return;
 
     const confirmText = isAr
@@ -293,30 +322,79 @@ async function loadEvents(userId: string) {
       notify(
         isAr
           ? `تم إرسال التذكير إلى ${pendingGuests.length} ضيف`
-          : `Sent reminder to ${pendingGuests.length} pending guests`
+          : `Sent reminder to ${pendingGuests.length} pending guests`,
       );
     }
   }
+  async function handleEditGuest(guest: any) {
+    const newName = prompt(
+      isAr ? "تعديل اسم الضيف:" : "Edit guest name:",
+      guest.full_name,
+    );
+    if (newName === null) return;
+    const trimmedName = newName.trim();
+    if (!trimmedName) return;
 
-  async function handleSendOrRemindGuest(guest: any, mode: 'invite' | 'reminder' = 'invite') {
-    const isReminder = mode === 'reminder';
+    const newPhone = prompt(
+      isAr
+        ? "تعديل رقم الهاتف (مع رمز الدولة مثل +965):"
+        : "Edit phone number (with country code e.g. +965):",
+      guest.phone_number,
+    );
+    if (newPhone === null) return;
+    const trimmedPhone = newPhone.trim();
+    if (!trimmedPhone) return;
+
+    const { error } = await supabase
+      .from("guests")
+      .update({
+        full_name: trimmedName,
+        phone_number: trimmedPhone,
+      })
+      .eq("id", guest.id);
+
+    if (error) {
+      alert(
+        isAr
+          ? `تعذر التحديث: ${error.message}`
+          : `Failed to update: ${error.message}`,
+      );
+      return;
+    }
+
+    setGuests((prev) =>
+      prev.map((g) =>
+        g.id === guest.id
+          ? { ...g, full_name: trimmedName, phone_number: trimmedPhone }
+          : g,
+      ),
+    );
+    notify(isAr ? "تم تحديث بيانات الضيف بنجاح" : "Guest details updated");
+  }
+
+  async function handleSendOrRemindGuest(
+    guest: any,
+    mode: "invite" | "reminder" = "invite",
+  ) {
+    const isReminder = mode === "reminder";
     const ok = await dispatchPlatformWhatsApp([guest], isReminder);
     if (!ok) return;
 
-    if (guest.status === 'draft') {
+    if (guest.status === "draft") {
       const { error } = await supabase
-        .from('guests')
-        .update({ status: 'pending' })
-        .eq('id', guest.id);
+        .from("guests")
+        .update({ status: "pending" })
+        .eq("id", guest.id);
 
       if (!error) {
         setGuests((prev) =>
-          prev.map((g) => (g.id === guest.id ? { ...g, status: 'pending' } : g))
+          prev.map((g) =>
+            g.id === guest.id ? { ...g, status: "pending" } : g,
+          ),
         );
       }
     }
   }
-
 
   async function handleUpdatePin(e: React.FormEvent) {
     e.preventDefault();
@@ -343,39 +421,37 @@ async function loadEvents(userId: string) {
     }
   }
 
-
   async function handleDeleteEvent() {
-  const ev = Array.isArray(selectedEvent) ? selectedEvent : selectedEvent;
-  if (!ev?.id) return;
+    const ev = Array.isArray(selectedEvent) ? selectedEvent : selectedEvent;
+    if (!ev?.id) return;
 
-  const confirmMsg = isAr
-    ? `هل أنت متأكد من حذف "${ev.title}"؟ سيتم حذف جميع المجموعات والضيوف المرتبطين بها.`
-    : `Delete "${ev.title}"? This will permanently remove all its groups and guest invites.`;
+    const confirmMsg = isAr
+      ? `هل أنت متأكد من حذف "${ev.title}"؟ سيتم حذف جميع المجموعات والضيوف المرتبطين بها.`
+      : `Delete "${ev.title}"? This will permanently remove all its groups and guest invites.`;
 
-  if (!confirm(confirmMsg)) return;
+    if (!confirm(confirmMsg)) return;
 
-  setBusyAction('delete-event');
-  const { error } = await supabase.from('events').delete().eq('id', ev.id);
-  setBusyAction(null);
+    setBusyAction("delete-event");
+    const { error } = await supabase.from("events").delete().eq("id", ev.id);
+    setBusyAction(null);
 
-  if (error) {
-    alert(`Error deleting event: ${error.message}`);
-    return;
+    if (error) {
+      alert(`Error deleting event: ${error.message}`);
+      return;
+    }
+
+    const remaining = events.filter((item) => item.id !== ev.id);
+    setEvents(remaining);
+    notify(isAr ? "تم حذف المناسبة" : "Event deleted");
+
+    if (remaining.length > 0) {
+      selectEvent(remaining[0]);
+    } else {
+      setSelectedEvent(null);
+      setCollections([]);
+      setGuests([]);
+    }
   }
-
-  const remaining = events.filter((item) => item.id !== ev.id);
-  setEvents(remaining);
-  notify(isAr ? 'تم حذف المناسبة' : 'Event deleted');
-
-  if (remaining.length > 0) {
-    selectEvent(remaining[0]);
-  } else {
-    setSelectedEvent(null);
-    setCollections([]);
-    setGuests([]);
-  }
-}
-
 
   if (!user) {
     return (
@@ -441,8 +517,7 @@ async function loadEvents(userId: string) {
     attended: isAr ? "حضر" : "Attended",
   };
 
-
-    async function enforceGuestQuota(newlyAdded: any[]) {
+  async function enforceGuestQuota(newlyAdded: any[]) {
     const guestLimit = Number(user?.user_metadata?.guest_limit || 0);
     if (!guestLimit) {
       setGuests((prev) => [...newlyAdded, ...prev]);
@@ -460,7 +535,7 @@ async function loadEvents(userId: string) {
     const excessIds = newlyAdded.slice(remaining).map((g) => g.id);
 
     if (excessIds.length > 0) {
-      await supabase.from('guests').delete().in('id', excessIds);
+      await supabase.from("guests").delete().in("id", excessIds);
     }
 
     if (allowed.length > 0) {
@@ -470,11 +545,10 @@ async function loadEvents(userId: string) {
     alert(
       isAr
         ? `لقد وصلت إلى الحد الأقصى لباقتك (${guestLimit} ضيف). تم حفظ ${allowed.length} ضيف فقط.`
-        : `You reached your package quota (${guestLimit} guests). Only ${allowed.length} guests were saved.`
+        : `You reached your package quota (${guestLimit} guests). Only ${allowed.length} guests were saved.`,
     );
     return false;
   }
-
 
   return (
     <main
@@ -482,10 +556,10 @@ async function loadEvents(userId: string) {
       className="min-h-screen bg-[#FAF8F5] text-[#1C1917] pb-20"
     >
       <header className="bg-white border-b border-stone-200 px-5 py-4 sticky top-0 z-20">
-             <div className="max-w-3xl mx-auto flex items-center justify-between gap-3">
+        <div className="max-w-3xl mx-auto flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[11px] uppercase tracking-widest text-[#B48A5A] font-semibold">
-              {isAr ? 'لوحة المضيف' : 'Host Dashboard'}
+              {isAr ? "لوحة المضيف" : "Host Dashboard"}
             </p>
             {events.length > 0 && selectedEvent ? (
               <div className="flex items-center gap-2 mt-0.5">
@@ -505,30 +579,26 @@ async function loadEvents(userId: string) {
                 </select>
                 <button
                   type="button"
-                  disabled={busyAction === 'delete-event'}
+                  disabled={busyAction === "delete-event"}
                   onClick={handleDeleteEvent}
                   className="text-[11px] font-semibold text-red-600 hover:bg-red-50 border border-red-200/80 px-2.5 py-1 rounded-lg shrink-0"
-                  title={isAr ? 'حذف هذه المناسبة' : 'Delete this event'}
+                  title={isAr ? "حذف هذه المناسبة" : "Delete this event"}
                 >
-                  {busyAction === 'delete-event'
+                  {busyAction === "delete-event"
                     ? isAr
-                      ? 'جاري الحذف...'
-                      : 'Deleting...'
+                      ? "جاري الحذف..."
+                      : "Deleting..."
                     : isAr
-                    ? 'حذف'
-                    : 'Delete'}
+                      ? "حذف"
+                      : "Delete"}
                 </button>
               </div>
             ) : (
               <h1 className="text-lg font-bold truncate">
-                {isAr ? 'مناسباتي' : 'My Gatherings'}
+                {isAr ? "مناسباتي" : "My Gatherings"}
               </h1>
             )}
           </div>
-
-
-
-
 
           <div className="flex items-center gap-2">
             <button
@@ -555,15 +625,15 @@ async function loadEvents(userId: string) {
             >
               <LogOut className="w-4 h-4" />
             </button>
-            {user?.email?.toLowerCase() === process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase() && (
-  <a
-    href="/admin"
-    className="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#2E5A44] text-white px-3 py-1.5 rounded-xl hover:bg-[#244736]"
-  >
-    {isAr ? 'لوحة الإدارة' : 'Admin'}
-  </a>
-)}
-
+            {user?.email?.toLowerCase() ===
+              process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase() && (
+              <a
+                href="/admin"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#2E5A44] text-white px-3 py-1.5 rounded-xl hover:bg-[#244736]"
+              >
+                {isAr ? "لوحة الإدارة" : "Admin"}
+              </a>
+            )}
           </div>
         </div>
       </header>
@@ -581,20 +651,31 @@ async function loadEvents(userId: string) {
           </div>
         ) : (
           <>
-
-              {/* 3 Live Stats Cards */}
+            {/* 3 Live Stats Cards */}
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-white p-4 rounded-2xl border border-stone-200/80">
-                <p className="text-xs text-stone-500">{isAr ? 'الضيوف المؤكدون' : 'Confirmed Guests'}</p>
-                <p className="text-2xl font-bold text-[#2E5A44] mt-1">{acceptedHeadcount}</p>
+                <p className="text-xs text-stone-500">
+                  {isAr ? "الضيوف المؤكدون" : "Confirmed Guests"}
+                </p>
+                <p className="text-2xl font-bold text-[#2E5A44] mt-1">
+                  {acceptedHeadcount}
+                </p>
               </div>
               <div className="bg-white p-4 rounded-2xl border border-stone-200/80">
-                <p className="text-xs text-stone-500">{isAr ? 'الحضور عند البوابة' : 'Arrived at Door'}</p>
-                <p className="text-2xl font-bold text-[#1C1917] mt-1">{arrivedTotal}</p>
+                <p className="text-xs text-stone-500">
+                  {isAr ? "الحضور عند البوابة" : "Arrived at Door"}
+                </p>
+                <p className="text-2xl font-bold text-[#1C1917] mt-1">
+                  {arrivedTotal}
+                </p>
               </div>
               <div className="bg-white p-4 rounded-2xl border border-stone-200/80">
-                <p className="text-xs text-stone-500">{isAr ? 'بانتظار الرد' : 'Pending RSVP'}</p>
-                <p className="text-2xl font-bold text-[#B48A5A] mt-1">{pendingCount}</p>
+                <p className="text-xs text-stone-500">
+                  {isAr ? "بانتظار الرد" : "Pending RSVP"}
+                </p>
+                <p className="text-2xl font-bold text-[#B48A5A] mt-1">
+                  {pendingCount}
+                </p>
               </div>
             </div>
 
@@ -602,9 +683,14 @@ async function loadEvents(userId: string) {
             <div className="bg-white px-4 py-3 rounded-2xl border border-stone-200/80 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-xs">
                 <KeyRound className="w-4 h-4 text-[#B48A5A]" />
-                <span className="text-stone-500">{isAr ? 'رمز البوابة:' : 'Door Scanner PIN:'}</span>
+                <span className="text-stone-500">
+                  {isAr ? "رمز البوابة:" : "Door Scanner PIN:"}
+                </span>
                 {editingPin ? (
-                  <form onSubmit={handleUpdatePin} className="inline-flex items-center gap-1.5">
+                  <form
+                    onSubmit={handleUpdatePin}
+                    className="inline-flex items-center gap-1.5"
+                  >
                     <input
                       type="text"
                       maxLength={6}
@@ -612,67 +698,99 @@ async function loadEvents(userId: string) {
                       onChange={(e) => setPinDraft(e.target.value)}
                       className="w-20 border border-stone-300 rounded-lg px-2 py-1 text-xs font-bold"
                     />
-                    <button type="submit" disabled={busyAction === 'pin'} className="bg-[#2E5A44] text-white px-2.5 py-1 rounded-lg text-xs font-semibold">
-                      {busyAction === 'pin' ? (isAr ? 'حفظ...' : 'Saving...') : (isAr ? 'حفظ' : 'Save')}
+                    <button
+                      type="submit"
+                      disabled={busyAction === "pin"}
+                      className="bg-[#2E5A44] text-white px-2.5 py-1 rounded-lg text-xs font-semibold"
+                    >
+                      {busyAction === "pin"
+                        ? isAr
+                          ? "حفظ..."
+                          : "Saving..."
+                        : isAr
+                          ? "حفظ"
+                          : "Save"}
                     </button>
                   </form>
                 ) : (
                   <>
                     <span className="font-mono font-bold text-sm text-[#1C1917] bg-[#FAF8F5] px-2.5 py-0.5 rounded-md border border-stone-200">
-                      {selectedEvent.gatekeeper_pin || '1234'}
+                      {selectedEvent.gatekeeper_pin || "1234"}
                     </span>
                     <button
-                      onClick={() => { setPinDraft(selectedEvent.gatekeeper_pin || '1234'); setEditingPin(true); }}
+                      onClick={() => {
+                        setPinDraft(selectedEvent.gatekeeper_pin || "1234");
+                        setEditingPin(true);
+                      }}
                       className="text-[#2E5A44] font-semibold underline ms-1"
                     >
-                      {isAr ? 'تغيير' : 'Change'}
+                      {isAr ? "تغيير" : "Change"}
                     </button>
                   </>
                 )}
               </div>
-              <a href={`/door/${selectedEvent.id}`} target="_blank" className="inline-flex items-center gap-1.5 bg-[#FAF8F5] border border-stone-300 text-xs font-semibold px-3 py-1.5 rounded-xl">
-                <QrCode className="w-3.5 h-3.5 text-[#B48A5A]" /> {isAr ? 'ماسح البوابة' : 'Open Door Scanner'}
+              <a
+                href={`/door/${selectedEvent.id}`}
+                target="_blank"
+                className="inline-flex items-center gap-1.5 bg-[#FAF8F5] border border-stone-300 text-xs font-semibold px-3 py-1.5 rounded-xl"
+              >
+                <QrCode className="w-3.5 h-3.5 text-[#B48A5A]" />{" "}
+                {isAr ? "ماسح البوابة" : "Open Door Scanner"}
               </a>
             </div>
 
             {/* Action Bar */}
             <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-stone-200/80">
-              <form onSubmit={handleAddCollection} className="flex items-center gap-2 flex-1 min-w-[220px]">
+              <form
+                onSubmit={handleAddCollection}
+                className="flex items-center gap-2 flex-1 min-w-[220px]"
+              >
                 <input
                   type="text"
-                  placeholder={isAr ? 'مجموعة جديدة (مثال: عائلة الفلان)' : 'New family group (e.g. A Family)'}
+                  placeholder={
+                    isAr
+                      ? "مجموعة جديدة (مثال: عائلة الفلان)"
+                      : "New family group (e.g. A Family)"
+                  }
                   value={newCollectionName}
                   onChange={(e) => setNewCollectionName(e.target.value)}
                   className="flex-1 rounded-xl border border-stone-200 bg-[#FAF8F5] px-3 py-2 text-xs"
                 />
-                <button type="submit" className="bg-stone-800 text-white text-xs font-semibold px-3 py-2 rounded-xl">
-                  {isAr ? 'إضافة مجموعة' : 'Add Group'}
+                <button
+                  type="submit"
+                  className="bg-stone-800 text-white text-xs font-semibold px-3 py-2 rounded-xl"
+                >
+                  {isAr ? "إضافة مجموعة" : "Add Group"}
                 </button>
               </form>
 
               <div className="flex items-center gap-2">
-                <button onClick={() => setShowImportModal(true)} className="inline-flex items-center gap-1.5 bg-[#2E5A44] text-white text-xs font-semibold px-3.5 py-2 rounded-xl">
-                  <UserPlus className="w-4 h-4" /> {isAr ? 'إضافة ضيوف' : 'Import / Add Guests'}
+                <button
+                  onClick={() => setShowImportModal(true)}
+                  className="inline-flex items-center gap-1.5 bg-[#2E5A44] text-white text-xs font-semibold px-3.5 py-2 rounded-xl"
+                >
+                  <UserPlus className="w-4 h-4" />{" "}
+                  {isAr ? "إضافة ضيوف" : "Import / Add Guests"}
                 </button>
-{events.length > 1 && (
-  <button
-    onClick={() => setShowCopyModal(true)}
-    className="inline-flex items-center gap-1.5 bg-[#FAF8F5] border border-stone-300 text-stone-800 text-xs font-semibold px-3.5 py-2 rounded-xl hover:border-[#2E5A44]"
-  >
-    <Copy className="w-3.5 h-3.5 text-[#2E5A44]" />
-    {isAr ? 'نسخ من مناسبة' : 'Copy from Event'}
-  </button>
-)}
+                {events.length > 1 && (
+                  <button
+                    onClick={() => setShowCopyModal(true)}
+                    className="inline-flex items-center gap-1.5 bg-[#FAF8F5] border border-stone-300 text-stone-800 text-xs font-semibold px-3.5 py-2 rounded-xl hover:border-[#2E5A44]"
+                  >
+                    <Copy className="w-3.5 h-3.5 text-[#2E5A44]" />
+                    {isAr ? "نسخ من مناسبة" : "Copy from Event"}
+                  </button>
+                )}
 
-
-
-                <a href={`/door/${selectedEvent.id}`} target="_blank" className="inline-flex items-center gap-1.5 bg-[#FAF8F5] border border-stone-300 text-xs font-semibold px-3.5 py-2 rounded-xl">
-                  <QrCode className="w-4 h-4 text-[#B48A5A]" /> {isAr ? 'ماسح البوابة' : 'Door Scanner'}
+                <a
+                  href={`/door/${selectedEvent.id}`}
+                  target="_blank"
+                  className="inline-flex items-center gap-1.5 bg-[#FAF8F5] border border-stone-300 text-xs font-semibold px-3.5 py-2 rounded-xl"
+                >
+                  <QrCode className="w-4 h-4 text-[#B48A5A]" />{" "}
+                  {isAr ? "ماسح البوابة" : "Door Scanner"}
                 </a>
               </div>
-
-
-
             </div>
 
             {/* Send Invitations Banner */}
@@ -682,35 +800,38 @@ async function loadEvents(userId: string) {
                   <p className="font-bold text-sm">
                     {isAr
                       ? `${draftCount} ضيوف جاهزون لإرسال الدعوة`
-                      : `${draftCount} ${draftCount === 1 ? 'guest is' : 'guests are'} ready to invite`}
+                      : `${draftCount} ${draftCount === 1 ? "guest is" : "guests are"} ready to invite`}
                   </p>
                   <p className="text-xs opacity-85">
-                    {isAr ? 'راجع الأسماء والمجموعات ثم أرسل الدعوات.' : 'Review names & family groups, then send when ready.'}
+                    {isAr
+                      ? "راجع الأسماء والمجموعات ثم أرسل الدعوات."
+                      : "Review names & family groups, then send when ready."}
                   </p>
                 </div>
                 <button
                   onClick={handleSendAllDraftInvites}
                   className="bg-white text-[#2E5A44] font-bold text-xs px-4 py-2.5 rounded-xl shrink-0 hover:bg-stone-100"
                 >
-                  {isAr ? `إرسال ${draftCount} دعوة` : `Send ${draftCount} Invitations`}
+                  {isAr
+                    ? `إرسال ${draftCount} دعوة`
+                    : `Send ${draftCount} Invitations`}
                 </button>
               </div>
             )}
 
-
             {/* Remind All Pending Guests Banner */}
-            {guests.filter((g) => g.status === 'pending').length > 0 && (
+            {guests.filter((g) => g.status === "pending").length > 0 && (
               <div className="bg-amber-50 border border-amber-200/80 text-amber-950 p-4 rounded-2xl flex items-center justify-between gap-3">
                 <div>
                   <p className="font-bold text-sm">
                     {isAr
-                      ? `${guests.filter((g) => g.status === 'pending').length} ضيوف بانتظار الرد`
-                      : `${guests.filter((g) => g.status === 'pending').length} guests haven't responded yet`}
+                      ? `${guests.filter((g) => g.status === "pending").length} ضيوف بانتظار الرد`
+                      : `${guests.filter((g) => g.status === "pending").length} guests haven't responded yet`}
                   </p>
                   <p className="text-xs text-amber-800">
                     {isAr
-                      ? 'أرسل تذكيراً لطيفاً عبر واتساب لجميع غير المؤكدين دفعة واحدة.'
-                      : 'Send a gentle WhatsApp reminder to all pending guests at once.'}
+                      ? "أرسل تذكيراً لطيفاً عبر واتساب لجميع غير المؤكدين دفعة واحدة."
+                      : "Send a gentle WhatsApp reminder to all pending guests at once."}
                   </p>
                 </div>
                 <button
@@ -719,8 +840,8 @@ async function loadEvents(userId: string) {
                   className="bg-amber-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl shrink-0 hover:bg-amber-700"
                 >
                   {isAr
-                    ? `تذكير الجميع (${guests.filter((g) => g.status === 'pending').length})`
-                    : `Remind All (${guests.filter((g) => g.status === 'pending').length})`}
+                    ? `تذكير الجميع (${guests.filter((g) => g.status === "pending").length})`
+                    : `Remind All (${guests.filter((g) => g.status === "pending").length})`}
                 </button>
               </div>
             )}
@@ -728,23 +849,38 @@ async function loadEvents(userId: string) {
             {/* Search & Filter Pills */}
             <div className="space-y-3">
               <div className="relative">
-                <Search className={`w-4 h-4 text-stone-400 absolute ${isAr ? 'right-3.5' : 'left-3.5'} top-3`} />
+                <Search
+                  className={`w-4 h-4 text-stone-400 absolute ${isAr ? "right-3.5" : "left-3.5"} top-3`}
+                />
                 <input
                   type="text"
-                  placeholder={isAr ? 'ابحث باسم الضيف أو المجموعة...' : 'Search by guest name or family group (e.g. A Family)...'}
+                  placeholder={
+                    isAr
+                      ? "ابحث باسم الضيف أو المجموعة..."
+                      : "Search by guest name or family group (e.g. A Family)..."
+                  }
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`w-full rounded-xl border border-stone-200 bg-white ${isAr ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-2.5 text-sm`}
+                  className={`w-full rounded-xl border border-stone-200 bg-white ${isAr ? "pr-10 pl-4" : "pl-10 pr-4"} py-2.5 text-sm`}
                 />
               </div>
 
               <div className="flex gap-2 overflow-x-auto pb-1">
-                {['all', 'draft', 'accepted', 'pending', 'declined', 'attended'].map((st) => (
+                {[
+                  "all",
+                  "draft",
+                  "accepted",
+                  "pending",
+                  "declined",
+                  "attended",
+                ].map((st) => (
                   <button
                     key={st}
                     onClick={() => setStatusFilter(st)}
                     className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
-                      statusFilter === st ? 'bg-[#1C1917] text-white' : 'bg-white text-stone-600 border border-stone-200'
+                      statusFilter === st
+                        ? "bg-[#1C1917] text-white"
+                        : "bg-white text-stone-600 border border-stone-200"
                     }`}
                   >
                     {statusLabels[st]}
@@ -755,7 +891,9 @@ async function loadEvents(userId: string) {
 
             <div className="space-y-4">
               {groupedSections.map((group) => {
-                const colIndex = collections.findIndex((c) => c.id === group.id);
+                const colIndex = collections.findIndex(
+                  (c) => c.id === group.id,
+                );
                 return (
                   <div
                     key={group.id}
@@ -765,7 +903,8 @@ async function loadEvents(userId: string) {
                       if (group.id !== "unassigned") e.preventDefault();
                     }}
                     onDrop={() => {
-                      if (group.id !== "unassigned") handleDropCollection(colIndex);
+                      if (group.id !== "unassigned")
+                        handleDropCollection(colIndex);
                     }}
                     onDragEnd={() => setDraggedColIndex(null)}
                     className={`bg-white rounded-2xl border overflow-hidden transition ${
@@ -776,7 +915,9 @@ async function loadEvents(userId: string) {
                   >
                     <div
                       className={`bg-[#FAF8F5] px-4 py-3 border-b border-stone-200/70 flex items-center justify-between ${
-                        group.id !== "unassigned" ? "cursor-grab active:cursor-grabbing" : ""
+                        group.id !== "unassigned"
+                          ? "cursor-grab active:cursor-grabbing"
+                          : ""
                       }`}
                     >
                       <div className="flex items-center gap-2">
@@ -801,7 +942,9 @@ async function loadEvents(userId: string) {
                           <div className="flex items-center gap-1">
                             <button
                               disabled={colIndex <= 0}
-                              onClick={() => handleMoveCollection(colIndex, "up")}
+                              onClick={() =>
+                                handleMoveCollection(colIndex, "up")
+                              }
                               className="p-1 text-stone-500 hover:text-stone-900 disabled:opacity-30"
                               title={isAr ? "تحريك للأعلى" : "Move group up"}
                             >
@@ -809,7 +952,9 @@ async function loadEvents(userId: string) {
                             </button>
                             <button
                               disabled={colIndex === collections.length - 1}
-                              onClick={() => handleMoveCollection(colIndex, "down")}
+                              onClick={() =>
+                                handleMoveCollection(colIndex, "down")
+                              }
                               className="p-1 text-stone-500 hover:text-stone-900 disabled:opacity-30"
                               title={isAr ? "تحريك للأسفل" : "Move group down"}
                             >
@@ -853,8 +998,8 @@ async function loadEvents(userId: string) {
                                 )}
                                 {g.arrived_count > 0 && (
                                   <span className="text-[11px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
-                                    {isAr ? "حضر" : "Attended"} ({g.arrived_count}/
-                                    {1 + g.extra_guests})
+                                    {isAr ? "حضر" : "Attended"} (
+                                    {g.arrived_count}/{1 + g.extra_guests})
                                   </span>
                                 )}
                               </div>
@@ -873,7 +1018,9 @@ async function loadEvents(userId: string) {
                                   className="text-[11px] bg-[#FAF8F5] border border-stone-200 rounded-lg px-2 py-0.5 text-stone-700 font-medium"
                                 >
                                   <option value="">
-                                    {isAr ? "عام / غير مصنف" : "General / Unassigned"}
+                                    {isAr
+                                      ? "عام / غير مصنف"
+                                      : "General / Unassigned"}
                                   </option>
                                   {collections.map((c) => (
                                     <option key={c.id} value={c.id}>
@@ -883,11 +1030,6 @@ async function loadEvents(userId: string) {
                                 </select>
                               </div>
 
-
-
-
-
-
                               {g.guest_note && (
                                 <p className="text-xs italic text-stone-600 bg-[#FAF8F5] px-2.5 py-1 rounded-lg">
                                   &ldquo;{g.guest_note}&rdquo;
@@ -895,13 +1037,17 @@ async function loadEvents(userId: string) {
                               )}
                             </div>
 
-                                                    <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+                            <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
                               {g.status === "draft" ? (
                                 <button
                                   disabled={busyAction === "sending"}
-                                  onClick={() => handleSendOrRemindGuest(g, "invite")}
+                                  onClick={() =>
+                                    handleSendOrRemindGuest(g, "invite")
+                                  }
                                   className="inline-flex items-center gap-1 text-xs font-semibold bg-[#2E5A44] text-white px-2.5 py-1.5 rounded-lg hover:bg-[#244736] disabled:opacity-50"
-                                  title={isAr ? "إرسال الدعوة" : "Send Invitation"}
+                                  title={
+                                    isAr ? "إرسال الدعوة" : "Send Invitation"
+                                  }
                                 >
                                   <Send className="w-3 h-3" />
                                   {isAr ? "إرسال" : "Send"}
@@ -909,9 +1055,15 @@ async function loadEvents(userId: string) {
                               ) : (
                                 <button
                                   disabled={busyAction === "sending"}
-                                  onClick={() => handleSendOrRemindGuest(g, "invite")}
+                                  onClick={() =>
+                                    handleSendOrRemindGuest(g, "invite")
+                                  }
                                   className="inline-flex items-center gap-1 text-xs font-semibold bg-stone-100 text-stone-700 border border-stone-200 px-2.5 py-1.5 rounded-lg hover:bg-stone-200/70 disabled:opacity-50"
-                                  title={isAr ? "إعادة إرسال الدعوة" : "Resend Invitation"}
+                                  title={
+                                    isAr
+                                      ? "إعادة إرسال الدعوة"
+                                      : "Resend Invitation"
+                                  }
                                 >
                                   <Send className="w-3 h-3" />
                                   {isAr ? "إعادة إرسال" : "Resend"}
@@ -921,7 +1073,9 @@ async function loadEvents(userId: string) {
                               {g.status === "pending" && (
                                 <button
                                   disabled={busyAction === "sending"}
-                                  onClick={() => handleSendOrRemindGuest(g, "reminder")}
+                                  onClick={() =>
+                                    handleSendOrRemindGuest(g, "reminder")
+                                  }
                                   className="inline-flex items-center gap-1 text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1.5 rounded-lg hover:bg-amber-100 disabled:opacity-50"
                                   title={isAr ? "إرسال تذكير" : "Send Reminder"}
                                 >
@@ -962,16 +1116,14 @@ async function loadEvents(userId: string) {
                               >
                                 {isAr ? "حذف" : "Delete"}
                               </button>
+                              <button
+                                type="button"
+                                onClick={() => handleEditGuest(g)}
+                                className="text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 px-2.5 py-1.5 rounded-lg"
+                              >
+                                {isAr ? "تعديل" : "Edit"}
+                              </button>
                             </div>
-
-
-
-
-
-
-
-
-
                           </div>
                         ))
                       )}
@@ -980,9 +1132,6 @@ async function loadEvents(userId: string) {
                 );
               })}
             </div>
-
-
-
           </>
         )}
       </div>
@@ -994,7 +1143,7 @@ async function loadEvents(userId: string) {
           onCreated={() => loadEvents(user.id)}
         />
       )}
-       {showImportModal && selectedEvent && (
+      {showImportModal && selectedEvent && (
         <ImportGuestsModal
           eventId={selectedEvent.id}
           collections={collections}
@@ -1013,12 +1162,15 @@ async function loadEvents(userId: string) {
           onCopied={async (copied) => {
             const allFit = await enforceGuestQuota(copied);
             if (allFit) {
-              notify(isAr ? `تم نسخ ${copied.length} ضيوف` : `Copied ${copied.length} guests`);
+              notify(
+                isAr
+                  ? `تم نسخ ${copied.length} ضيوف`
+                  : `Copied ${copied.length} guests`,
+              );
             }
           }}
         />
       )}
-
 
       {replacingGuest && selectedEvent && (
         <ReplaceGuestModal
