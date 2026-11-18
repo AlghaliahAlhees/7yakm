@@ -49,14 +49,40 @@ useEffect(() => {
       setPinError(true);
     }
   }
-useEffect(() => {
-  if (!unlocked || mode !== 'scan') return;
-  const scanner = new Html5QrcodeScanner('qr-readerz', { fps: 10, qrbox: { width: 230, height: 230 } }, false);
-  scanner.render(async (decodedToken) => {
-    await handleTokenCheckIn(decodedToken.trim());
-  }, () => {});
-  return () => { scanner.clear().catch(() => {}); };
-}, [unlocked, mode]);
+  useEffect(() => {
+    if (!unlocked || mode !== 'scan') return;
+    let scanner: Html5QrcodeScanner | null = null;
+
+    const timer = setTimeout(() => {
+      const container = document.getElementById('qr-reader');
+      if (!container) return;
+
+      try {
+        scanner = new Html5QrcodeScanner(
+          'qr-reader',
+          { fps: 10, qrbox: { width: 230, height: 230 } },
+          false
+        );
+        scanner.render(
+          async (decodedToken) => {
+            await handleTokenCheckIn(decodedToken.trim());
+          },
+          () => {}
+        );
+      } catch (err) {
+        console.error('QR Scanner init error:', err);
+        setMode('search');
+      }
+    }, 150);
+
+    return () => {
+      clearTimeout(timer);
+      if (scanner) {
+        scanner.clear().catch(() => {});
+      }
+    };
+  }, [unlocked, mode]);
+
 
 async function handleTokenCheckIn(token: string) {
   const guest = guestsRef.current.find((g) => g.invite_token === token);

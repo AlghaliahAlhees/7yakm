@@ -277,6 +277,27 @@ async function loadEvents(userId: string) {
       );
     }
   }
+
+    async function handleRemindAllPending() {
+    const pendingGuests = guests.filter((g) => g.status === 'pending');
+    if (pendingGuests.length === 0) return;
+
+    const confirmText = isAr
+      ? `هل تريد إرسال تذكير واتساب إلى جميع الضيوف الذين لم يردوا (${pendingGuests.length} ضيف)؟`
+      : `Send a WhatsApp reminder to all ${pendingGuests.length} guests who haven't responded yet?`;
+
+    if (!confirm(confirmText)) return;
+
+    const ok = await dispatchPlatformWhatsApp(pendingGuests, true);
+    if (ok) {
+      notify(
+        isAr
+          ? `تم إرسال التذكير إلى ${pendingGuests.length} ضيف`
+          : `Sent reminder to ${pendingGuests.length} pending guests`
+      );
+    }
+  }
+
   async function handleSendOrRemindGuest(guest: any, mode: 'invite' | 'reminder' = 'invite') {
     const isReminder = mode === 'reminder';
     const ok = await dispatchPlatformWhatsApp([guest], isReminder);
@@ -672,6 +693,34 @@ async function loadEvents(userId: string) {
                   className="bg-white text-[#2E5A44] font-bold text-xs px-4 py-2.5 rounded-xl shrink-0 hover:bg-stone-100"
                 >
                   {isAr ? `إرسال ${draftCount} دعوة` : `Send ${draftCount} Invitations`}
+                </button>
+              </div>
+            )}
+
+
+            {/* Remind All Pending Guests Banner */}
+            {guests.filter((g) => g.status === 'pending').length > 0 && (
+              <div className="bg-amber-50 border border-amber-200/80 text-amber-950 p-4 rounded-2xl flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-bold text-sm">
+                    {isAr
+                      ? `${guests.filter((g) => g.status === 'pending').length} ضيوف بانتظار الرد`
+                      : `${guests.filter((g) => g.status === 'pending').length} guests haven't responded yet`}
+                  </p>
+                  <p className="text-xs text-amber-800">
+                    {isAr
+                      ? 'أرسل تذكيراً لطيفاً عبر واتساب لجميع غير المؤكدين دفعة واحدة.'
+                      : 'Send a gentle WhatsApp reminder to all pending guests at once.'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemindAllPending}
+                  className="bg-amber-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl shrink-0 hover:bg-amber-700"
+                >
+                  {isAr
+                    ? `تذكير الجميع (${guests.filter((g) => g.status === 'pending').length})`
+                    : `Remind All (${guests.filter((g) => g.status === 'pending').length})`}
                 </button>
               </div>
             )}
