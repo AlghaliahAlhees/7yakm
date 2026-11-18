@@ -984,7 +984,7 @@ export default function HostDashboardPage() {
                         group.items.map((g) => (
                           <div
                             key={g.id}
-                            className="p-4 flex items-center justify-between gap-3"
+                            className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                           >
                             <div className="space-y-1">
                               <div className="flex items-center gap-2 flex-wrap">
@@ -1037,7 +1037,8 @@ export default function HostDashboardPage() {
                               )}
                             </div>
 
-                            <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+                        <div className="flex flex-wrap items-center gap-1.5">
+
                               {g.status === "draft" ? (
                                 <button
                                   disabled={busyAction === "sending"}
