@@ -241,27 +241,31 @@ export default function HostDashboardPage() {
     targetGuests: any[],
     isReminder: boolean,
   ) {
-
-        const isAdmin =
-      user?.email?.toLowerCase() === process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase();
+    const isAdmin =
+      user?.email?.toLowerCase() ===
+      process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase();
     const guestLimit = Number(user?.user_metadata?.guest_limit || 0);
 
     if (!isAdmin && guestLimit <= 0) {
       alert(
         isAr
-          ? 'لا توجد باقة مفعّلة في حسابك حالياً. يرجى التواصل مع الإدارة لتفعيل باقة الدعوات.'
-          : 'You do not have an active invitation package. Please contact support to activate your quota.'
+          ? "لا توجد باقة مفعّلة في حسابك حالياً. يرجى التواصل مع الإدارة لتفعيل باقة الدعوات."
+          : "You do not have an active invitation package. Please contact support to activate your quota.",
       );
       return false;
     }
 
-    const alreadySentCount = guests.filter((g) => g.status !== 'draft').length;
-    if (!isAdmin && !isReminder && alreadySentCount + targetGuests.length > guestLimit) {
+    const alreadySentCount = guests.filter((g) => g.status !== "draft").length;
+    if (
+      !isAdmin &&
+      !isReminder &&
+      alreadySentCount + targetGuests.length > guestLimit
+    ) {
       const remaining = Math.max(0, guestLimit - alreadySentCount);
       alert(
         isAr
           ? `رصيد باقتك المتبقي هو ${remaining} دعوة فقط (الحد الأقصى ${guestLimit}). يرجى ترقية باقتك لإرسال المزيد.`
-          : `You only have ${remaining} invites left in your ${guestLimit}-guest package. Upgrade your package to send more.`
+          : `You only have ${remaining} invites left in your ${guestLimit}-guest package. Upgrade your package to send more.`,
       );
       return false;
     }
@@ -662,14 +666,15 @@ export default function HostDashboardPage() {
           </div>
         </div>
       </header>
-            {/* Paid Package Quota Counter */}
+      {/* Paid Package Quota Counter */}
       {(() => {
         const isAdmin =
-          user?.email?.toLowerCase() === process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase();
+          user?.email?.toLowerCase() ===
+          process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase();
         const guestLimit = Number(user?.user_metadata?.guest_limit || 0);
-        if (isAdmin || guestLimit <= 0) return null;
+        if (guestLimit <= 0) return null;
 
-        const usedCount = guests.filter((g) => g.status !== 'draft').length;
+        const usedCount = guests.filter((g) => g.status !== "draft").length;
         const remainingCount = Math.max(0, guestLimit - usedCount);
         const pct = Math.min(100, Math.round((usedCount / guestLimit) * 100));
 
@@ -678,15 +683,15 @@ export default function HostDashboardPage() {
             <div className="max-w-3xl mx-auto flex flex-wrap items-center justify-between gap-2 text-xs">
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-stone-600">
-                  {isAr ? 'رصيد الدعوات المتبقي:' : 'Remaining Invites:'}
+                  {isAr ? "رصيد الدعوات المتبقي:" : "Remaining Invites:"}
                 </span>
                 <span
                   className={`font-bold px-2.5 py-0.5 rounded-full ${
                     remainingCount === 0
-                      ? 'bg-red-50 text-red-700'
+                      ? "bg-red-50 text-red-700"
                       : remainingCount <= 10
-                      ? 'bg-amber-50 text-amber-800'
-                      : 'bg-[#2E5A44]/10 text-[#2E5A44]'
+                        ? "bg-amber-50 text-amber-800"
+                        : "bg-[#2E5A44]/10 text-[#2E5A44]"
                   }`}
                 >
                   {isAr
@@ -699,18 +704,19 @@ export default function HostDashboardPage() {
                 <div className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden">
                   <div
                     className={`h-full transition-all ${
-                      remainingCount === 0 ? 'bg-red-500' : 'bg-[#2E5A44]'
+                      remainingCount === 0 ? "bg-red-500" : "bg-[#2E5A44]"
                     }`}
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-                <span className="text-[11px] text-stone-400 shrink-0">{pct}%</span>
+                <span className="text-[11px] text-stone-400 shrink-0">
+                  {pct}%
+                </span>
               </div>
             </div>
           </div>
         );
       })()}
-
 
       <div className="max-w-3xl mx-auto px-5 pt-6 space-y-6">
         {!selectedEvent ? (
@@ -1111,8 +1117,7 @@ export default function HostDashboardPage() {
                               )}
                             </div>
 
-                        <div className="flex flex-wrap items-center gap-1.5">
-
+                            <div className="flex flex-wrap items-center gap-1.5">
                               {g.status === "draft" ? (
                                 <button
                                   disabled={busyAction === "sending"}

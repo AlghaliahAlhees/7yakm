@@ -41,8 +41,7 @@ export default function AuthForm({ onAuthenticated }: { onAuthenticated: (user: 
         : 'Password reset link sent! Check your email inbox.'
     );
   }
-
-  const whatsappOrderUrl = `https://wa.me{encodeURIComponent(
+  const whatsappOrderUrl = `https://wa.me/96599535772?text=${encodeURIComponent(
     isAr
       ? 'السلام عليكم، أرغب بالاشتراك في باقة دعوات حيّاك'
       : 'Hello, I would like to purchase a 7yak invitation package.'
@@ -69,7 +68,6 @@ export default function AuthForm({ onAuthenticated }: { onAuthenticated: (user: 
         </div>
 
         <div className="text-center space-y-1">
-          <Sparkles className="w-6 h-6 mx-auto text-[#B48A5A]" />
           <h1 className="text-2xl font-bold">
             {isAr ? 'بوابة مضيفي حيّاك' : '7yak Host Portal'}
           </h1>
